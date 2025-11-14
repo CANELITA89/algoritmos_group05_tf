@@ -1,6 +1,7 @@
 # algoritmos_group05_tf
 Mi proyecto de algoritmos
-- Integrantes:
+
+## Integrantes:
 
 - Jose Fernando Requeja Chambilla
 
