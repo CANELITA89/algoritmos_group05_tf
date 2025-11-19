@@ -3,8 +3,8 @@ Proyecto de algoritmos
 
 ## Integrantes:
 
-- Jose Fernando Requeja Chambilla
+- Jose Fernando Requejo Chambilla
 
 - Adridano Jair Mattus Castro 
 
-- Piero Enrique Sanchez Vega
+- Pierina Enrique Sanchez Vega
