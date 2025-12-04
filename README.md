@@ -6,5 +6,3 @@ Proyecto de algoritmos
 - Jose Fernando Requejo Chambilla
 
 - Adridano Jair Mattus Castro 
-
-- Pierina Enrique Sanchez Vega
