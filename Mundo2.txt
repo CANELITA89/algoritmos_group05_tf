@@ -1,0 +1,198 @@
+﻿#pragma once
+using namespace System;
+using namespace System::Drawing;
+using namespace System::Windows::Forms;
+
+namespace WinGame {
+
+    public ref class FormMundo2 : public System::Windows::Forms::Form
+    {
+    private:
+        Panel^ escena2;
+        Image^ fondo2;
+
+        PictureBox^ jugadorSprite;
+        int jugadorVelocidad;
+
+        // imágenes del jugador
+        Image^ imgIdle;
+        Image^ imgLeft;
+        Image^ imgRight;
+
+        // Input
+        bool up, down, left, right;
+        Timer^ tActualizar;
+
+    public:
+
+        // -------------------------------------------------------------
+        // CONSTRUCTOR PRINCIPAL
+        // -------------------------------------------------------------
+        FormMundo2() {
+            InitializeComponent();
+
+            this->KeyPreview = true;
+            this->KeyDown += gcnew KeyEventHandler(this, &FormMundo2::keyDown);
+            this->KeyUp += gcnew KeyEventHandler(this, &FormMundo2::keyUp);
+
+            tActualizar = gcnew Timer();
+            tActualizar->Interval = 20;
+            tActualizar->Tick += gcnew EventHandler(this, &FormMundo2::tickActualizar);
+            tActualizar->Start();
+        }
+
+        // -------------------------------------------------------------
+        // CONSTRUCTOR QUE RECIBE LOS DATOS DEL JUGADOR
+        // -------------------------------------------------------------
+        FormMundo2(
+            Point playerPos,
+            Image^ playerImage,
+            int vel,
+            Image^ _imgIdle,
+            Image^ _imgLeft,
+            Image^ _imgRight
+        ) : FormMundo2()
+        {
+            imgIdle = _imgIdle;
+            imgLeft = _imgLeft;
+            imgRight = _imgRight;
+
+            setJugadorInicial(playerPos, playerImage, vel);
+        }
+
+
+        // -------------------------------------------------------------
+        // INICIALIZACIÓN DEL FORM
+        // -------------------------------------------------------------
+        void InitializeComponent() {
+            this->Width = 960;
+            this->Height = 600;
+            this->Text = "Mundo 2 - El siguiente desafío";
+
+            escena2 = gcnew Panel();
+            escena2->Location = Point(20, 20);
+            escena2->Size = Drawing::Size(900, 500);
+            escena2->BackColor = Color::Black;
+            this->Controls->Add(escena2);
+
+            String^ path = "FILES/backgrounds/mundo2.png";
+            if (System::IO::File::Exists(path))
+                fondo2 = Image::FromFile(path);
+
+            escena2->Paint += gcnew PaintEventHandler(this, &FormMundo2::dibujarFondo);
+
+            jugadorSprite = gcnew PictureBox();
+            jugadorSprite->Size = Drawing::Size(40, 40);
+            jugadorSprite->SizeMode = PictureBoxSizeMode::StretchImage;
+            jugadorSprite->BackColor = Color::Transparent;
+        }
+
+
+        // -------------------------------------------------------------
+        // CARGAR AL JUGADOR EN MUNDO 2
+        // -------------------------------------------------------------
+        void setJugadorInicial(Point playerPos, Image^ playerImage, int vel) {
+
+            if (playerImage != nullptr)
+                jugadorSprite->Image = playerImage;
+
+            jugadorSprite->Location = playerPos;
+            jugadorVelocidad = vel;
+
+            if (!escena2->Controls->Contains(jugadorSprite)) {
+                escena2->Controls->Add(jugadorSprite);
+                jugadorSprite->BringToFront();
+            }
+        }
+
+
+    private:
+
+        // -------------------------------------------------------------
+        // EVENTOS DE TECLAS
+        // -------------------------------------------------------------
+        void keyDown(Object^ sender, KeyEventArgs^ e) {
+
+            if (e->KeyCode == Keys::W || e->KeyCode == Keys::Up) up = true;
+            if (e->KeyCode == Keys::S || e->KeyCode == Keys::Down) down = true;
+            if (e->KeyCode == Keys::A || e->KeyCode == Keys::Left) left = true;
+            if (e->KeyCode == Keys::D || e->KeyCode == Keys::Right) right = true;
+
+            // Cambiar imagen al presionar dirección
+            if (left && imgLeft != nullptr) jugadorSprite->Image = imgLeft;
+            if (right && imgRight != nullptr) jugadorSprite->Image = imgRight;
+        }
+
+
+        void keyUp(Object^ sender, KeyEventArgs^ e) {
+
+            if (e->KeyCode == Keys::W || e->KeyCode == Keys::Up) up = false;
+            if (e->KeyCode == Keys::S || e->KeyCode == Keys::Down) down = false;
+            if (e->KeyCode == Keys::A || e->KeyCode == Keys::Left) left = false;
+            if (e->KeyCode == Keys::D || e->KeyCode == Keys::Right) right = false;
+
+            // Volver a idle si no avanza horizontalmente
+            if (!left && !right && imgIdle != nullptr)
+                jugadorSprite->Image = imgIdle;
+        }
+
+
+        // -------------------------------------------------------------
+        // TIMER → MOVIMIENTO DEL JUGADOR
+        // -------------------------------------------------------------
+        void tickActualizar(Object^ sender, EventArgs^ e) {
+
+            if (jugadorSprite == nullptr) return;
+
+            int dx = 0, dy = 0;
+
+            if (left)  dx -= jugadorVelocidad;
+            if (right) dx += jugadorVelocidad;
+            if (up)    dy -= jugadorVelocidad;
+            if (down)  dy += jugadorVelocidad;
+
+            int nx = jugadorSprite->Left + dx;
+            int ny = jugadorSprite->Top + dy;
+
+            // límites del mapa
+            if (nx < 0) nx = 0;
+            if (nx + jugadorSprite->Width > escena2->Width)
+                nx = escena2->Width - jugadorSprite->Width;
+
+            if (ny < 0) ny = 0;
+            if (ny + jugadorSprite->Height > escena2->Height)
+                ny = escena2->Height - jugadorSprite->Height;
+
+            jugadorSprite->Location = Point(nx, ny);
+
+            // Cambiar imagen según movimiento
+            if (dx < 0 && imgLeft != nullptr) jugadorSprite->Image = imgLeft;
+            else if (dx > 0 && imgRight != nullptr) jugadorSprite->Image = imgRight;
+            else if (dx == 0 && imgIdle != nullptr) jugadorSprite->Image = imgIdle;
+        }
+
+
+        // -------------------------------------------------------------
+        // DIBUJAR FONDO
+        // -------------------------------------------------------------
+        void dibujarFondo(Object^ sender, PaintEventArgs^ e) {
+
+            if (fondo2 != nullptr)
+                e->Graphics->DrawImage(fondo2, 0, 0, escena2->Width, escena2->Height);
+            else
+                e->Graphics->Clear(escena2->BackColor);
+
+            e->Graphics->DrawString("Bienvenido a Mundo 2",
+                gcnew System::Drawing::Font("Arial", 14),
+                Brushes::White, PointF(10.0f, 10.0f));
+
+            String^ info = "Velocidad del jugador: " + jugadorVelocidad.ToString();
+            e->Graphics->DrawString(info,
+                gcnew System::Drawing::Font("Arial", 9),
+                Brushes::White, PointF(10.0f, 34.0f));
+        }
+
+    };  // ← cierre de class FormMundo2
+
+
+} // ← CIERRE DEL NAMESPACE WinGame (MUY IMPORTANTE)
