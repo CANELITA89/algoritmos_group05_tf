@@ -1,0 +1,83 @@
+#pragma once
+#include "Header.h"
+using namespace System;
+using namespace System::Drawing;
+using namespace System::Windows::Forms;
+
+namespace WinGame {
+
+    public ref class MenuPrincipal : public Form {
+    private:
+        Button^ btnJugar;
+        Button^ btnSalir;
+        Label^ titulo;
+
+    public:
+        MenuPrincipal() {
+            this->Text = "Menu Principal";
+            this->StartPosition = FormStartPosition::CenterScreen;
+            this->ClientSize = Drawing::Size(900, 600);
+            this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
+            this->MaximizeBox = false;
+
+            String^ rutaFondo = "FILES/backgrounds/menu.png";
+            if (System::IO::File::Exists(rutaFondo)) {
+                this->BackgroundImage = Image::FromFile(rutaFondo);
+                this->BackgroundImageLayout = ImageLayout::Stretch;
+            }
+
+            titulo = gcnew Label();
+            titulo->Text = "IA vs Pensamiento Crítico";
+            titulo->Font = gcnew Drawing::Font("Segoe UI", 22, FontStyle::Bold);
+            titulo->ForeColor = Color::White;
+            titulo->AutoSize = true;
+            titulo->BackColor = Color::Transparent;
+            titulo->Location = Point((this->ClientSize.Width - titulo->PreferredWidth) / 2, 40);
+
+            btnJugar = crearBoton("Jugar", Point((this->ClientSize.Width - 220) / 2, 220));
+            btnJugar->Click += gcnew EventHandler(this, &MenuPrincipal::onJugar);
+
+            btnSalir = crearBoton("Salir", Point((this->ClientSize.Width - 220) / 2, 320));
+            btnSalir->Click += gcnew EventHandler(this, &MenuPrincipal::onSalir);
+
+            this->Controls->Add(titulo);
+            this->Controls->Add(btnJugar);
+            this->Controls->Add(btnSalir);
+        }
+
+    private:
+        Button^ crearBoton(String^ texto, Point pos) {
+            Button^ b = gcnew Button();
+            b->Text = texto;
+            b->Size = Drawing::Size(220, 60);
+            b->Location = pos;
+
+            b->FlatStyle = FlatStyle::Flat;
+            b->FlatAppearance->BorderSize = 0;
+
+            b->Font = gcnew Drawing::Font("Segoe UI", 14, FontStyle::Bold);
+            b->ForeColor = Color::White;
+            b->BackColor = Color::FromArgb(150, 0, 0, 0); // sin glow
+
+            return b;
+        }
+
+        void onJugar(Object^ s, EventArgs^ e) {
+            FormJuego^ juego = gcnew FormJuego();
+            juego->StartPosition = FormStartPosition::CenterScreen;
+
+            juego->FormClosed += gcnew FormClosedEventHandler(this, &MenuPrincipal::onJuegoCerrado);
+
+            juego->Show();
+            this->Hide();
+        }
+
+        void onSalir(Object^ s, EventArgs^ e) {
+            Application::Exit();
+        }
+
+        void onJuegoCerrado(Object^ s, FormClosedEventArgs^ e) {
+            this->Show();
+        }
+    };
+}
